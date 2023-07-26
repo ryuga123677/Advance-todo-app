@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "582104017228",
+    "project_id": "calmocean-c4594",
+    "storage_bucket": "calmocean-c4594.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582104017228:android:6af1f86e3a1da0716d07e9",
+        "android_client_info": {
+          "package_name": "com.calmOcean.to_do_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "582104017228-85a9cvnr09nif55mcthhd4aihgtqat21.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY6uQUkhA6xl10kmCte78TzRc5LhLP29c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "582104017228-85a9cvnr09nif55mcthhd4aihgtqat21.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
