@@ -11,8 +11,8 @@ import 'sessioncontroller.dart';
 
 class chat extends StatefulWidget {
   String sender;
-  String reciver;
-   chat({super.key,required this.sender,required this.reciver});
+
+   chat({super.key,required this.sender});
 
   @override
   State<chat> createState() => _chatState();
@@ -48,7 +48,22 @@ late var firestore;
 
     return Scaffold(backgroundColor: Colors.tealAccent.shade100,
       appBar: AppBar(
-        title: Text('chat',style: TextStyle(fontFamily: 'BungeeSpice'),),
+        title: Row(
+          children: [
+            Text('chat',style: TextStyle(fontFamily: 'BungeeSpice'),),
+            Spacer(),
+            InkWell(child: Icon(Icons.delete_forever_outlined),onTap: ()async{
+              var snapshot=await firestore.get();
+              for(var doc in snapshot.docs)
+                {
+                  doc.reference.delete();
+                }
+
+              setState(() {
+
+              });},)
+          ],
+        ),
         backgroundColor: Colors.tealAccent.shade700,
       ),
       body: Column(
@@ -66,18 +81,37 @@ late var firestore;
                 {
                   return Text('some error');
                 }
-                return Expanded(child: ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context,index)
-                    {return ListTile(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                return Container(width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context,index)
+                      {
 
-                        title:Text(snapshot.data!.docs[index]['message'].toString(),style: TextStyle(fontFamily: 'Merienda'),),
-                      subtitle: Text(snapshot.data!.docs[index]['username'].toString()),
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(width:MediaQuery.of(context).size.width,
 
-                    );
+                            alignment: (snapshot.data!.docs[index]['username'].toString()==useruid)?Alignment.topRight:Alignment.topLeft,
+                            child: Container(
+                              decoration: BoxDecoration(color: Colors.tealAccent.shade400,borderRadius: BorderRadius.only(topRight: Radius.zero,topLeft: Radius.circular(15),bottomLeft:Radius.zero,bottomRight:  Radius.circular(30) )),
 
-                    }));
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  children: [Text(snapshot.data!.docs[index]['message'].toString(),style: TextStyle(fontFamily: 'Merienda'),),
+                                Text(snapshot.data!.docs[index]['username'].toString(),style: TextStyle(color: Colors.tealAccent.shade700),),
+                                ],
+
+
+                      ),
+                              ),
+                            ),
+                          ),
+                        );
+
+                      }),
+                );
               }),
           ),
           Padding(
@@ -96,6 +130,7 @@ late var firestore;
                     streamcontroler.addResponse(list);
                     firestore.doc(timespan).set(
                         {'username':useruid,
+
                           'message':message.text.toString(),
                           'id':timespan
                         });

@@ -57,7 +57,7 @@ String useruid='';
       body:
 
           Padding(
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.all(5.0),
           child: Column(
             children: [
               SizedBox(height: 10,),
@@ -73,12 +73,12 @@ String useruid='';
                 decoration: InputDecoration(
 
 
-                  hintText: 'Search',
-                  suffixIcon: Icon(Icons.search),
+                  hintText: 'Search',hintStyle: TextStyle(color: Colors.blue),
+                  suffixIcon: Icon(Icons.search,color: Colors.blue,),
                   border: OutlineInputBorder(
 
 
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius: BorderRadius.circular(15),
 
                   )
 
@@ -102,15 +102,17 @@ String useruid='';
                   {
                     return ListTile(
 
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                      shape: RoundedRectangleBorder(
+
+                        borderRadius: BorderRadius.circular(50), ),
                       title: Text(snapshot.child('username').value.toString(),style: TextStyle(fontFamily: 'Merienda'),),
-                      subtitle: Text(snapshot.child('email').value.toString()),
+                      subtitle: Text(snapshot.child('email').value.toString(),style: TextStyle(color: Colors.tealAccent.shade700),),
                       trailing: PopupMenuButton(
                         icon: Icon(Icons.more_vert),
                         itemBuilder: (context) => [
                           PopupMenuItem(child: ListTile(
 
-                            shape: RoundedRectangleBorder(side: BorderSide(width: 1),borderRadius: BorderRadius.circular(50),),
+
                             leading: Icon(Icons.add),
                             title: Text('Add'),
                             onTap: (){//final ref3=ref2.data.docs['username'].toString();
@@ -126,6 +128,7 @@ String useruid='';
                                     {
                                       'username':snapshot.child('username').value.toString(),
                                       'email':snapshot.child('email').value.toString(),
+                                      'userdeviceid':snapshot.child('userdeviceid').value.toString(),
                                       'id':id,
                                       'leader':useruid
 
@@ -166,7 +169,10 @@ String useruid='';
                                   {
                                     'username':snapshot.child('username').value.toString(),
                                     'email':snapshot.child('email').value.toString(),
-                                    'id':id
+                                    'userdeviceid':snapshot.child('userdeviceid').value.toString(),
+                                    'id':id,
+                                    'leader':useruid
+
 
                                   });
                               widget.arrayuser.add(snapshot.child('username').value.toString());

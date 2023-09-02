@@ -6,6 +6,7 @@ import 'package:to_do_app/mainscreen.dart';
 import 'package:to_do_app/text_button.dart';
 import 'package:to_do_app/utils.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'Notification_services.dart';
 import 'sessioncontroller.dart';
 class signup extends StatefulWidget {
   const signup({super.key});
@@ -16,13 +17,28 @@ class signup extends StatefulWidget {
 
 class _signupState extends State<signup> {
   bool loading=false;
+  notificationservices notificationser=notificationservices();
   late String user;
+  String? deviceid;
   final formkey=GlobalKey<FormState>();
   final auth=FirebaseAuth.instance;
   var email=TextEditingController();
   var password=TextEditingController();
   var username=TextEditingController();
   DatabaseReference ref=FirebaseDatabase.instance.ref('users');
+  void initState()
+  {
+    notificationser.requestnotificationpermission();
+    notificationser.firebaseInit(context);
+    notificationser.istokenrefresh();
+    notificationser.setupinteractmessage(context);
+
+    notificationser.getdevicetoken().then((value) {
+      print("device token");
+      deviceid=value;
+      print(value);
+    });
+  }
 
 
   @override
@@ -212,6 +228,7 @@ class _signupState extends State<signup> {
         {
           'username':username.text.toString(),
           'email':email.text.toString(),
+          'userdeviceid':deviceid.toString(),
 
 
         }

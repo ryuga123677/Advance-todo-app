@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
@@ -8,7 +10,9 @@ import 'package:to_do_app/team_chat.dart';
 import 'package:to_do_app/team_mainscreen.dart';
 import 'package:to_do_app/team_phone.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'Notification_services.dart';
 import 'sessioncontroller.dart';
+import 'package:http/http.dart' as http;
 
 import 'chat.dart';
 class leader extends StatefulWidget {
@@ -30,12 +34,31 @@ late var useremail;
 class _leaderState extends State<leader> {
   late var ref1;
   late var ref2;
+  String? userdeviceid;
+  late var firestore;
+  late var chatfirestore;
+  String? deviceid;
+  notificationservices notificationser=notificationservices();
   void initState() {
     User? currentuser = auth.currentUser;
     final uid = currentuser?.email;
     useruid = uid != null ? uid : 'no';
     ref2=FirebaseFirestore.instance.collection(useruid+'group');
     ref1=FirebaseFirestore.instance.collection(useruid+'group').snapshots();
+    firestore = FirebaseFirestore.instance.collection(useruid+'chat');
+    chatfirestore =
+        FirebaseFirestore.instance.collection(useruid+'chat')
+            .snapshots();
+    notificationser.requestnotificationpermission();
+    notificationser.firebaseInit(context);
+    notificationser.istokenrefresh();
+    notificationser.setupinteractmessage(context);
+
+    notificationser.getdevicetoken().then((value) {
+      print("device token");
+      deviceid=value;
+      print(value);
+    });
 
 
   }
@@ -46,7 +69,17 @@ class _leaderState extends State<leader> {
         title: Row(
           children: [
             Text('Leader',style: TextStyle(fontFamily: 'BungeeSpice'),),
-            Spacer(),
+           Spacer(),
+            InkWell(child: Icon(Icons.chat_outlined),
+            onTap: (){
+              sessioncontrol().user = useruid;
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (context) =>
+                      chat(sender: useruid,
+                      )));}
+
+            ),
+            SizedBox(width: 10,),
             InkWell(child: Icon(Icons.exit_to_app),
             onTap: (){
               SystemNavigator.pop();
@@ -75,12 +108,20 @@ class _leaderState extends State<leader> {
                      InkWell(
                        child: Padding(
                          padding: const EdgeInsets.all(8.0),
-                         child: ListTile(tileColor: Colors.blueAccent.shade100, shape: RoundedRectangleBorder(side: BorderSide(width: 1),borderRadius: BorderRadius.circular(50)),
+                         child: Card( shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(20),
+                           side: BorderSide(
+                              color: Colors.black,),
+                           ),elevation: 16,
+                           shadowColor: Colors.red,
+                           child: ListTile(
+                             tileColor: Colors.tealAccent.shade200, shape: RoundedRectangleBorder(side: BorderSide(width: 1),borderRadius: BorderRadius.circular(20)),
 
-                          leading: Icon(Icons.add),
-                          title: Text('Add members',style: TextStyle(color: Colors.black,fontFamily: 'Merienda'),
-                          ),
+                            leading: Icon(Icons.add,color: Colors.blue,),
+                            title: Text('Add members',style: TextStyle(color: Colors.black,fontFamily: 'Merienda'),
+                            ),
                     ),
+                         ),
                        ),
                        onTap: ()
                        {
@@ -90,6 +131,7 @@ class _leaderState extends State<leader> {
 
 
                      ),
+
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
 
@@ -101,16 +143,17 @@ class _leaderState extends State<leader> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
                     }
-                    if (snapshot.hasError) {
+                    else if (snapshot.hasError) {
                       return Text('some error');
                     }
-                    if(snapshot.hasData)
+                    else if(snapshot.hasData)
                       {
                       return ListView.separated(
                           shrinkWrap: true,
 
                           itemCount: snapshot.data!.docs.length,
                           itemBuilder: (context, index) {
+
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ListTile(tileColor: Colors.tealAccent.shade400,
@@ -129,29 +172,35 @@ class _leaderState extends State<leader> {
                                     },)
                                   ],
                                 ),
-                                //subtitle: Text(snapshot.data!.docs[index]['email']
-                                    //.toString()),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                                 trailing: PopupMenuButton(
-                                  icon: Icon(Icons.add,color: Colors.white,),
+                                  icon: Icon(Icons.add,color: Colors.blue,),
                                   itemBuilder: (context) =>
                                   [
                                     PopupMenuItem(
                                       value: 1,
 
-                                      child: ListTile( title: Text('Assign Task',style: TextStyle(fontFamily: 'Merienda'),),
+
+                                        child: ListTile(
+
+                                          title: Text('Assign Task',style: TextStyle(fontFamily: 'Merienda'),),
 
 
 
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                                        onTap: () {Navigator.pop(context);
-                                          username =
-                                              snapshot.data!.docs[index]['email']
-                                                  .toString();
+                                          // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                                          onTap: () { Navigator.pop(context);
+                                            username =
+                                                snapshot.data!.docs[index]['email']
+                                                    .toString();
+                                       // userdeviceid=snapshot.data[index]['userdeviceid'].toString();
 
-                                          showmydialog();
-                                        },
-                                      ),
+                                            showmydialog();
+
+
+                                          },
+                                        ),
+
                                     )
                                   ],
 
@@ -160,14 +209,8 @@ class _leaderState extends State<leader> {
 
 
                                 onTap: () {
-                                  sessioncontrol().user = useruid;
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          chat(sender: useruid,
-                                            reciver: snapshot.data!
-                                                .docs[index]['username']
-                                                .toString(),)));
-                                  //   Navigator.push(context, MaterialPageRoute(builder: (context)=>teammain()));
+
+
                                 },
 
 
@@ -180,7 +223,9 @@ class _leaderState extends State<leader> {
                         },
 
                       );}
-                    return Container();
+
+
+                      {return Container();}
                     }
 
 
@@ -202,19 +247,48 @@ class _leaderState extends State<leader> {
       return AlertDialog(
         title: Text('Asign Task'),
         content: Container(
+
           child: TextField(
             controller: pop,
             decoration: InputDecoration(
               suffixIcon: InkWell(child: Icon(Icons.send),
                 onTap: (){
+
                   useremail = FirebaseFirestore.instance.collection(username+'task');
                   String id=DateTime.now().millisecondsSinceEpoch.toString();
                   useremail.doc(id).set(
                       {'sender':useruid,
+                        'senderdeviceid':deviceid.toString(),
                         'task':pop.text.toString(),
                         'id':id
                       }
                   );
+                  // notificationser.getdevicetoken().then((value)async {
+                  //   var data={
+                  //     'to':userdeviceid.toString(),
+                  //     'priority':'high',
+                  //     'notification':{
+                  //       'title':'New Task',
+                  //       'body':'you have been assign a new task'
+                  //     },
+                  //     // 'data':{
+                  //     //   'type':'msg',
+                  //     //   'id':'12345678'
+                  //     // }
+                  //
+                  //   };
+                  //   await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+                  //       body: jsonEncode(data),
+                  //       headers: {
+                  //         'Content-Type':'application/json; charset=UTF-8',
+                  //         'Authorization':'key=AAAAh4gaaUw:APA91bFSbeI2oejSCC2yiUqHrURCV5FgYTCNGuYnzQd07jM2ll5OTNbIN3BAWaB_Rald75MMSi9BeXxp94qL6pWcsawjXAlW4JklL-a0GnxeDDF7mnqZO0L7iRRYIw0FxJtv6QUvckug'
+                  //       }
+                  //
+                  //   );
+                  //
+                  //
+                  // });
+
                 },
               )
             ),
@@ -226,4 +300,5 @@ class _leaderState extends State<leader> {
     });
 
   }
+
 }
